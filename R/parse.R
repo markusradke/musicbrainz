@@ -38,7 +38,7 @@ get_main_parser_lst <-function(type){
                        status = "status", status_id = "status-id", packaging_id = list("packaging", "id"), packaging_name = list("packaging", "name"),
                        date = "date", country = "country", disambiguation="disambiguation",
                        barcode = "barcode", asin = "asin", track_count = "track-count", quality="quality",
-                       release_group_id = list("release-group", "id"),
+                       release_group_id = list("release-group", "id"), language=list("text-representation", "language"),
                        release_group_primary_type = list("release-group", "primary-type")),
     "release-groups", list(mbid = "id", score = "score", count = "count", title = "title", disambiguation = "disambiguation",
                            primary_type = "primary-type", primary_type_id = "primary-type-id",
