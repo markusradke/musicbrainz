@@ -236,3 +236,29 @@ lookup_work_by_id <- function(mbid, includes=NULL) {
 
   res_df
 }
+
+#' Lookup all recordings with an ISRC
+#'
+#' Returns every recording that carries the given ISRC (an ISRC can be attached to several
+#' recordings, e.g. duplicates or remasters). Uses the `/isrc/<isrc>` endpoint, so one request
+#' returns all recordings together with the requested includes.
+#' @param isrc ISRC (International Standard Recording Code)
+#' @param includes character vector, any of "artists", "releases", "tags"
+#' @return Tibble with one row per recording (empty tibble if the ISRC is unknown)
+#' @importFrom dplyr bind_cols bind_rows
+#' @importFrom purrr map map_dfr pluck pmap_dfc
+#' @export
+lookup_recordings_by_isrc <- function(isrc, includes = c("artists", "tags")) {
+  includes <- validate_includes(includes, c("artists", "releases", "tags"))
+  inc <- c(artists = "artist-credits", releases = "releases", tags = "tags")[includes]
+  res <- lookup_by_id("isrc", isrc, unname(inc))
+  recs <- purrr::pluck(res, "recordings", .default = list())
+  if (!length(recs)) return(tibble::tibble())
+  purrr::map_dfr(recs, function(rec) {
+    main <- purrr::map_dfr(list(rec), ~ purrr::map(get_main_parser_lst("recordings"),
+                                                  function(i) purrr::pluck(.x, !!!i, .default = NA)))
+    parsers_df <- get_includes_parser_df(rec, includes)
+    if (nrow(parsers_df) > 0) main <- dplyr::bind_cols(main, purrr::pmap_dfc(parsers_df, parse_includes))
+    main
+  })
+}
